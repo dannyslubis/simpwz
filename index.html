@@ -53,19 +53,28 @@
             font-family: 'VT323', monospace;
             font-size: 24px;
             color: black;
-            text-transform: lowercase; /* Default ke huruf kecil */
+        }
+
+        /* REVISI: Mengatur gaya khusus untuk subscript agar sejajar */
+        .hud-text sub {
+            font-size: 18px; /* Sedikit lebih kecil dari font dasar (24px) */
+            vertical-align: baseline; /* Gunakan baseline dasar */
+            position: relative;
+            top: 3px; /* Dorong ke bawah agar rata dengan huruf biasa */
         }
 
         #hud-lambang {
             left: 160px; /* Koordinat f2 */
             top: 32px;
             width: 96px; /* 3 tile (f, g, h) */
+            /* Tidak ada text-transform lowercase di sini agar H2O tetap kapital */
         }
 
         #hud-wujud {
             left: 256px; /* Koordinat i2 */
             top: 32px;
             width: 96px; /* 3 tile (i, j, k) */
+            text-transform: lowercase; /* Wujud tetap lowercase (padat, cair, gas) */
         }
 
         /* Indikator Titik Klik */
@@ -155,7 +164,7 @@
     const fadeOverlay = document.getElementById('fade-overlay');
     const interactiveOverlay = document.getElementById('interactive-overlay');
 
-    // Data Status Default
+    // Data Status Default (Lambang sudah diatur kapital dengan sub html)
     const stateData = {
         'S': { src: 'pwzh2os.gif', lambang: 'H<sub>2</sub>O<sub>(s)</sub>', wujud: 'padat' },
         'L': { src: 'pwzh2ol.gif', lambang: 'H<sub>2</sub>O<sub>(l)</sub>', wujud: 'cair' },
