@@ -3,449 +3,339 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulasi Wujud Zat H2O - Pixel Art</title>
+    <title>Simulasi Wujud Zat H2O</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <style>
-        /* Gaya Visual Global (Pixelated) */
-        body, html {
+        body {
             margin: 0;
             padding: 0;
-            height: 100%;
-            font-family: 'Press Start 2P', cursive; /* Gunakan font pixelated */
-            background-color: #1a2a47; /* Latar belakang biru tua image_9 */
-            color: #d8dee9; /* Teks abu-abu terang */
-            -webkit-font-smoothing: none;
-            -moz-osx-font-smoothing: grayscale;
-            font-smooth: never;
-            image-rendering: pixelated; /* Mempertahankan pixelation pada semua elemen */
-        }
-
-        /* Container Utama UI */
-        #ui-container {
-            display: grid;
-            grid-template-columns: 250px 1fr 250px;
-            grid-template-rows: auto 1fr auto;
-            gap: 10px;
-            padding: 20px;
+            background-color: #1c1e1f; /* Warna latar belakang luar kanvas (Dark Grey) */
+            display: flex;
+            justify-content: center;
+            align-items: center;
             height: 100vh;
-            box-sizing: border-box;
+        }
+
+        #simulation-container {
+            width: 512px;
+            height: 288px;
             position: relative;
-        }
-
-        /* Tombol Sudut Atas */
-        .corner-button {
-            background-color: #4a5a78;
-            border: 4px solid #2a3a58;
-            color: #d8dee9;
-            padding: 10px;
-            text-align: center;
-            cursor: pointer;
-            box-shadow: inset 2px 2px #6a7a98, inset -2px -2px #2a3a58;
-            font-size: 10px;
-        }
-
-        .corner-button:active {
-            box-shadow: inset -2px -2px #6a7a98, inset 2px 2px #2a3a58;
-            transform: translateY(2px);
-        }
-
-        #repeat-btn {
-            grid-column: 1;
-            grid-row: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-        }
-
-        #other-btn {
-            grid-column: 3;
-            grid-row: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-        }
-
-        /* Panel Samping (Petunjuk & Informasi) */
-        .side-panel {
-            background-color: #f5f0db;
-            color: #2e3440;
-            border: 6px solid #bdae93;
-            padding: 15px;
-            font-size: 8px;
-            box-shadow: inset 2px 2px #e5dfcb, inset -2px -2px #a3957f, 4px 4px 0 rgba(0,0,0,0.3);
-            list-style: none;
-        }
-
-        .side-panel h3 {
-            margin-top: 0;
-            font-size: 10px;
-            border-bottom: 2px solid #bdae93;
-            padding-bottom: 5px;
-        }
-
-        .side-panel li {
-            margin-bottom: 8px;
-            padding-left: 12px;
-            position: relative;
-        }
-
-        .side-panel li::before {
-            content: "►";
-            position: absolute;
-            left: 0;
-            color: #2e3440;
-        }
-
-        #left-panel {
-            grid-column: 1;
-            grid-row: 2;
-        }
-
-        #right-panel {
-            grid-column: 3;
-            grid-row: 2;
-        }
-
-        /* Area Simulasi Tengah (Layar & Header) */
-        #central-sim-area {
-            grid-column: 2;
-            grid-row: 2;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-        }
-
-        /* Header (Lambang Zat & Wujud Zat) */
-        #sim-header {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            width: 80%;
-        }
-
-        .header-box {
-            background-color: #4a5a78;
-            border: 4px solid #2a3a58;
-            padding: 10px;
-            text-align: center;
-            font-size: 10px;
-            box-shadow: inset 2px 2px #6a7a98, inset -2px -2px #2a3a58;
-            position: relative;
-        }
-
-        .header-box .label {
-            display: block;
-            margin-bottom: 5px;
-            color: #d8dee9;
-        }
-
-        .header-box .value {
-            font-size: 14px;
-            color: #ffffff;
-            font-weight: bold;
-        }
-
-        /* Layar Tengah (Tampilan Sampel) */
-        #screen-display {
-            width: 80%;
-            height: 250px;
-            background-color: #000000;
-            border: 8px solid #4a5a78;
-            box-shadow: inset 4px 4px 0 #2a3a58, inset -4px -4px 0 #6a7a98, 4px 4px 0 rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
             overflow: hidden;
-            position: relative;
+            /* Mempertahankan kualitas pixel art */
+            image-rendering: pixelated; 
+            image-rendering: crisp-edges;
         }
 
-        #screen-display img {
-            max-width: 90%;
-            max-height: 90%;
-            display: block;
-            image-rendering: pixelated;
+        /* Pengaturan Layer Dasar */
+        .layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 512px;
+            height: 288px;
+            pointer-events: none; /* Agar klik diteruskan ke overlay paling atas */
         }
 
-        /* Basis Mesin Pemanas/Pendingin */
-        #engine-base {
-            width: 80%;
-            background-color: #4a5a78;
-            border: 6px solid #2a3a58;
-            box-shadow: inset 2px 2px #6a7a98, inset -2px -2px #2a3a58, 4px 4px 0 rgba(0,0,0,0.3);
-            padding: 15px;
-            margin-top: auto;
-            display: grid;
-            grid-template-columns: auto 1fr auto auto;
+        /* Urutan Z-Index berdasarkan permintaan */
+        #layer-canvas { z-index: 1; pointer-events: auto; }
+        #layer-tray-back { z-index: 2; display: none; }
+        #layer-gif { z-index: 3; display: none; }
+        #layer-tray-front { z-index: 4; display: none; }
+
+        /* HUD Text Container */
+        .hud-text {
+            position: absolute;
+            height: 32px;
+            z-index: 5;
+            display: flex;
+            justify-content: center;
             align-items: center;
-            gap: 15px;
-        }
-
-        /* Tampilan LED Digital */
-        #led-display {
-            background-color: #1a2a47;
-            border: 4px solid #101826;
-            color: #33ff33; /* Warna LED hijau */
-            font-family: 'Segment7Standard', sans-serif; /* Opsional: font segmen */
-            font-size: 20px;
-            text-align: center;
-            padding: 10px;
-            box-shadow: inset 2px 2px 0 #001100, inset -2px -2px 0 #202c41, 0 0 10px rgba(51,255,51,0.5);
-            min-width: 100px;
-            letter-spacing: 2px;
-        }
-
-        /* Tombol +/- Besar */
-        .big-control-btn {
-            width: 50px;
-            height: 50px;
-            background-color: #4a5a78;
-            border: 6px solid #2a3a58;
-            box-shadow: inset 2px 2px #6a7a98, inset -2px -2px #2a3a58;
+            font-family: 'VT323', monospace;
             font-size: 24px;
-            color: #ffffff;
+            color: black;
+            text-transform: lowercase; /* Default ke huruf kecil */
+        }
+
+        #hud-lambang {
+            left: 160px; /* Koordinat f2 */
+            top: 32px;
+            width: 96px; /* 3 tile (f, g, h) */
+        }
+
+        #hud-wujud {
+            left: 256px; /* Koordinat i2 */
+            top: 32px;
+            width: 96px; /* 3 tile (i, j, k) */
+        }
+
+        /* Indikator Titik Klik */
+        #circle-point {
+            position: absolute;
+            z-index: 6;
+            transform: translate(-50%, -50%); /* Agar titik tengah persis di klik */
+            display: none;
+            pointer-events: none;
+        }
+
+        /* Transisi Ulangi Simulasi */
+        #fade-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+            opacity: 0;
+            z-index: 10;
+            pointer-events: none;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        /* Area Overlay Interaktif Transparan Paling Atas */
+        #interactive-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 20;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
-
-        .big-control-btn:active {
-            box-shadow: inset -2px -2px #6a7a98, inset 2px 2px #2a3a58;
-            transform: translateY(2px);
-        }
-
-        #minus-btn {
-            background-color: #5e81ac; /* Biru minus image_9 */
-            border-color: #4a5a78;
-        }
-
-        #plus-btn {
-            background-color: #bf616a; /* Merah plus image_9 */
-            border-color: #4a5a78;
-        }
-
-        /* Tombol Power */
-        #power-btn {
-            width: 30px;
-            height: 30px;
-            background-color: #d08770; /* Warna power image_9 */
-            border: 4px solid #a3957f;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: inset 2px 2px 0 #ebcb8b, inset -2px -2px 0 #a3957f;
-        }
-
-        #power-btn svg {
-            width: 80%;
-            height: 80%;
-            fill: #4a5a78;
-        }
-
-        #power-btn.on {
-            background-color: #88c0d0; /* Warna on */
-            box-shadow: inset 2px 2px 0 #a3be8c, inset -2px -2px 0 #5e81ac, 0 0 10px rgba(136,192,208,0.7);
-        }
-
-        /* Footer Tanda Air/Versi */
-        footer {
-            grid-column: 1 / span 3;
-            text-align: center;
-            font-size: 6px;
-            color: #4a5a78;
-            margin-top: 10px;
-        }
-
     </style>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<div id="ui-container">
-    <button id="repeat-btn" class="corner-button">
-        <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 0 0-7 7 7 7 0 0 0 7 7 7 7 0 0 0 7-7A7 7 0 0 0 8 1zm3.3 4.3L8 9.6 4.7 6.3l-.7.7 4 4.1L12 6.3l-.7-.7z"/></svg>
-        Ulangi Simulasi
-    </button>
+<div id="simulation-container">
+    <img id="layer-canvas" class="layer" src="kanvaspwz.png" alt="Kanvas">
+    
+    <img id="layer-tray-back" class="layer" src="pwzh2otray.png" alt="Tray Back">
+    
+    <img id="layer-gif" class="layer" src="" alt="Zat Animasi">
+    
+    <img id="layer-tray-front" class="layer" src="pwzh2oftray.png" alt="Tray Front">
 
-    <button id="other-btn" class="corner-button">
-        Zat lainnya:
-        <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M11 2L8 5L5 2H2v12h12V2h-3zM3 13V3h1.3l2.7 2.7l2.7-2.7H13v10H3z"/></svg>
-    </button>
+    <div id="hud-lambang" class="hud-text"></div>
+    <div id="hud-wujud" class="hud-text"></div>
 
-    <ul id="left-panel" class="side-panel">
-        <h3>Petunjuk:</h3>
-        <li>tekan area sekitar sampel untuk melihat wujud sampel</li>
-        <li>tekan tombol <span style="color:red">+</span> untuk menaikkan temperatur atau <span style="color:blue">-</span> untuk menurunkan temperatur</li>
-        <li>perhatikan layar untuk melihat informasi sampel</li>
-    </ul>
+    <img id="circle-point" src="circlepoint.gif" alt="Target Point">
 
-    <ul id="right-panel" class="side-panel">
-        <h3>Informasi:</h3>
-        <li>simulasi ini hanya menunjukkan proses pemanasan!</li>
-        <li>ulangi simulasi jika sampel habis</li>
-        <li>wujud / fase:</li>
-        <li>(g) gas</li>
-        <li>(l) liquid/cair</li>
-        <li>(s) solid/padat</li>
-        <li>(aq) aqueous/larutan</li>
-    </ul>
+    <div id="fade-overlay"></div>
 
-    <div id="central-sim-area">
-        <div id="sim-header">
-            <div class="header-box">
-                <span class="label">Lambang Zat:</span>
-                <span id="label-substance" class="value">$H_2O$</span>
-            </div>
-            <div class="header-box">
-                <span class="label">Wujud Zat:</span>
-                <span id="label-state" class="value">$H_2O_{(l)}$</span>
-            </div>
-        </div>
-
-        <div id="screen-display">
-            <img id="sample-image" src="image_2.png" alt="Sampel Air Cair 25C">
-        </div>
-
-        <div id="engine-base">
-            <button id="minus-btn" class="big-control-btn">-</button>
-            <div id="led-display">025°C</div>
-            <button id="power-btn">
-                <svg viewBox="0 0 16 16"><path d="M12 2v2H4V2H2v12h12V2h-2zM4 12v-2h8v2H4z"/></svg>
-            </button>
-            <button id="plus-btn" class="big-control-btn">+</button>
-        </div>
-    </div>
-
-    <footer>PixelSim States of Matter v1.0 | Aset Gambar asli oleh Pengguna</footer>
+    <div id="interactive-overlay"></div>
 </div>
 
 <script>
-    // Inisialisasi State
-    const substanceName = "H2O";
-    let currentTemp = 25; // Suhu default cair
-    let powerOn = true; // Mesin diaktifkan
+    // ==========================================
+    // PRELOADER ASET
+    // ==========================================
+    const assets = [
+        'kanvaspwz.png', 'pwzh2otray.png', 'pwzh2oftray.png', 'circlepoint.gif',
+        'pwzh2os.gif', 'pwzh2osl.gif', 'pwzh2ol.gif', 'pwzh2ol50.gif',
+        'pwzh2olg.gif', 'pwzh2olg100.gif'
+    ];
+    assets.forEach(src => {
+        const img = new Image();
+        img.src = src;
+    });
 
-    // Aset Gambar (Pastikan filenya ada di folder yang sama)
-    const images = {
-        liquid_25: 'image_2.png',
-        liquid_50: 'image_3.png',
-        liquid_100: 'image_5.png', // Mendidih
-        ice_low: 'image_7.png', // Es ---C
-        ice_0: 'image_6.png', // Es 25C (salah tapi kita asumsikan transisi/stabil di bawah 0)
-        empty_dish: 'image_1.png', // Wadah kosong default
-        full_dish: 'image_8.png' // Wadah penuh (digunakan untuk 'sampel habis' transisi)
+    // ==========================================
+    // VARIABEL & STATE MESIN
+    // ==========================================
+    let simState = 'OFF'; // OFF, S, L, L50, G, TRANSITION
+    let idleTimer = null;
+    let circleTimeout = null;
+
+    // Elemen DOM
+    const layerTrayBack = document.getElementById('layer-tray-back');
+    const layerGif = document.getElementById('layer-gif');
+    const layerTrayFront = document.getElementById('layer-tray-front');
+    const hudLambang = document.getElementById('hud-lambang');
+    const hudWujud = document.getElementById('hud-wujud');
+    const circlePoint = document.getElementById('circle-point');
+    const fadeOverlay = document.getElementById('fade-overlay');
+    const interactiveOverlay = document.getElementById('interactive-overlay');
+
+    // Data Status Default
+    const stateData = {
+        'S': { src: 'pwzh2os.gif', lambang: 'H<sub>2</sub>O<sub>(s)</sub>', wujud: 'padat' },
+        'L': { src: 'pwzh2ol.gif', lambang: 'H<sub>2</sub>O<sub>(l)</sub>', wujud: 'cair' },
+        'L50': { src: 'pwzh2ol50.gif', lambang: 'H<sub>2</sub>O<sub>(l)</sub>', wujud: 'cair' },
+        'G': { src: 'pwzh2olg100.gif', lambang: 'H<sub>2</sub>O<sub>(g)</sub>', wujud: 'gas' }
     };
 
-    // Elemen UI
-    const ledDisplay = document.getElementById('led-display');
-    const substanceLabel = document.getElementById('label-substance');
-    const stateLabel = document.getElementById('label-state');
-    const sampleImage = document.getElementById('sample-image');
-    const powerBtn = document.getElementById('power-btn');
-    const screenDisplay = document.getElementById('screen-display');
-
-    // Fungsi Update Tampilan
-    function updateDisplay() {
-        // Update LED
-        ledDisplay.textContent = String(currentTemp).padStart(3, '0') + '°C';
-        
-        // Aturan Transisi Berdasarkan Suhu
-        if (currentTemp <= 0) {
-            // Wujud Es
-            substanceLabel.textContent = `$${substanceName}$`;
-            stateLabel.textContent = `$${substanceName}_{(s)}$ (Padat)`;
-            sampleImage.src = images.ice_low;
-            sampleImage.alt = "Es Padat ---C";
-        } else if (currentTemp >= 100) {
-            // Wujud Air Mendidih/Gas
-            substanceLabel.textContent = `$${substanceName}$`;
-            stateLabel.textContent = `$${substanceName}_{(g)}$ (Gas)`;
-            sampleImage.src = images.liquid_100;
-            sampleImage.alt = "Air Mendidih 100C";
-        } else if (currentTemp === 25) {
-            // Cair 25C
-            substanceLabel.textContent = `$${substanceName}$`;
-            stateLabel.textContent = `$${substanceName}_{(l)}$ (Cair)`;
-            sampleImage.src = images.liquid_25;
-            sampleImage.alt = "Air Cair 25C";
-        } else if (currentTemp === 50) {
-            // Cair 50C
-            substanceLabel.textContent = `$${substanceName}$`;
-            stateLabel.textContent = `$${substanceName}_{(l)}$ (Cair)`;
-            sampleImage.src = images.liquid_50;
-            sampleImage.alt = "Air Cair 50C";
-        } else {
-            // Cair Umum
-            substanceLabel.textContent = `$${substanceName}$`;
-            stateLabel.textContent = `$${substanceName}_{(l)}$ (Cair)`;
-            sampleImage.src = images.full_dish; // Gunakan wadah penuh sebagai sampel default cair
-            sampleImage.alt = "Sampel Cair";
+    // Fungsi Render Visual
+    function setVisualState(stateKey) {
+        if(stateData[stateKey]) {
+            // Memaksa reload GIF untuk reset animasi
+            layerGif.src = stateData[stateKey].src + '?t=' + new Date().getTime(); 
+            updateHUD(stateData[stateKey].lambang, stateData[stateKey].wujud);
         }
     }
 
-    // Fungsi Penguapan Lanjutan
-    function handleEvaporation() {
-        if (currentTemp > 100) {
-            currentTemp += 25; // Pemanasan cepat gas
-            stateLabel.textContent = `$${substanceName}_{(g)}$ (Menguap Lanjut)`;
-            ledDisplay.textContent = String(currentTemp).padStart(3, '0') + '°C';
-            // Ubah gambar ke 'Habis'
-            sampleImage.src = images.empty_dish;
-            sampleImage.alt = "Sampel Habis";
-            
-            // Aturan 'Ulangi'
-            if (currentTemp > 200) {
-                 alert("Sampel $H_2O$ habis! Silakan tekan 'Ulangi Simulasi'.");
-                 resetSimulation();
+    function updateHUD(lambang, wujud) {
+        hudLambang.innerHTML = lambang;
+        hudWujud.innerHTML = wujud;
+    }
+
+    function clearHUD() {
+        hudLambang.innerHTML = '';
+        hudWujud.innerHTML = '';
+    }
+
+    // ==========================================
+    // LOGIKA TRANSISI & TIMER
+    // ==========================================
+    function playTransition(gifSrc, duration, nextState) {
+        simState = 'TRANSITION';
+        clearTimeout(idleTimer);
+        layerGif.src = gifSrc + '?t=' + new Date().getTime();
+        
+        setTimeout(() => {
+            simState = nextState;
+            setVisualState(nextState);
+        }, duration);
+    }
+
+    function startIdleMeltTimer() {
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(() => {
+            if (simState === 'S') {
+                playTransition('pwzh2osl.gif', 4000, 'L');
+            }
+        }, 10000); // 10 Detik
+    }
+
+    // ==========================================
+    // LOGIKA TOMBOL
+    // ==========================================
+    function handlePower() {
+        if (simState === 'OFF') {
+            simState = 'S';
+            layerTrayBack.style.display = 'block';
+            layerGif.style.display = 'block';
+            layerTrayFront.style.display = 'block';
+            setVisualState('S');
+            startIdleMeltTimer();
+        }
+    }
+
+    function handleMinus() {
+        if (simState === 'TRANSITION' || simState === 'OFF') return;
+
+        if (simState === 'S') {
+            startIdleMeltTimer(); // Reset timer
+        } else if (simState === 'L50') {
+            simState = 'L';
+            setVisualState('L'); // L50 ke L tanpa transisi khusus
+        } else if (simState === 'G') {
+            playTransition('pwzh2olg.gif', 4000, 'L50'); // G ke L50 dengan transisi balik
+        }
+    }
+
+    function handlePlus() {
+        if (simState === 'TRANSITION' || simState === 'OFF') return;
+
+        if (simState === 'S') {
+            clearTimeout(idleTimer);
+            playTransition('pwzh2osl.gif', 4000, 'L50');
+        } else if (simState === 'L') {
+            simState = 'L50';
+            setVisualState('L50');
+        } else if (simState === 'L50') {
+            playTransition('pwzh2olg.gif', 4000, 'G');
+        }
+    }
+
+    function resetSimulation() {
+        fadeOverlay.style.opacity = 1;
+        setTimeout(() => {
+            clearTimeout(idleTimer);
+            clearTimeout(circleTimeout);
+            simState = 'OFF';
+            layerTrayBack.style.display = 'none';
+            layerGif.style.display = 'none';
+            layerTrayFront.style.display = 'none';
+            circlePoint.style.display = 'none';
+            clearHUD();
+            fadeOverlay.style.opacity = 0;
+        }, 300);
+    }
+
+    // ==========================================
+    // LOGIKA HITBOX & CIRCLE POINT
+    // ==========================================
+    interactiveOverlay.addEventListener('mousedown', (e) => {
+        // Deteksi Koordinat Pixel
+        const x = e.offsetX;
+        const y = e.offsetY;
+        
+        // Deteksi Grid 16x9 (Ukuran tile 32x32)
+        const col = Math.floor(x / 32); // a=0, b=1, ... p=15
+        const row = Math.floor(y / 32); // 1=0, 2=1, ... 9=8
+
+        // Deteksi Tombol Fisik
+        if (col === 9 && row === 7) handlePower();     // j8: Power
+        if (col === 5 && row === 7) handleMinus();     // f8: Minus
+        if (col === 10 && row === 7) handlePlus();     // k8: Plus
+        if (col === 0 && row === 0) resetSimulation(); // a1: Ulangi
+        if (col === 15 && row === 0) return;           // p1: Zat Lainnya (Placeholder)
+
+        // Deteksi Hitbox Area (f3-k6) -> Pixel X:160-352, Y:64-192
+        if (simState !== 'OFF' && simState !== 'TRANSITION') {
+            if (x >= 160 && x < 352 && y >= 64 && y < 192) {
+                
+                // Tampilkan Circle Point
+                circlePoint.style.left = x + 'px';
+                circlePoint.style.top = y + 'px';
+                circlePoint.style.display = 'block';
+
+                let validHit = false;
+                let overrideLambang = stateData[simState].lambang;
+                let overrideWujud = stateData[simState].wujud;
+
+                // Cek Validitas Berdasarkan State Aktif
+                if (simState === 'S') {
+                    // h5, h6, i5, i6 (X:224-288, Y:128-192)
+                    if (x >= 224 && x < 288 && y >= 128 && y < 192) validHit = true;
+                } 
+                else if (simState === 'L' || simState === 'L50') {
+                    // f6-k6 (X:160-352, Y:160-192)
+                    if (x >= 160 && x < 352 && y >= 160 && y < 192) validHit = true;
+                } 
+                else if (simState === 'G') {
+                    // f3-k5 (Gas Hitbox)
+                    if (x >= 160 && x < 352 && y >= 64 && y < 160) {
+                        validHit = true;
+                        overrideLambang = 'H<sub>2</sub>O<sub>(g)</sub>';
+                        overrideWujud = 'gas';
+                    }
+                    // f6-k6 (Cair Hitbox dalam kondisi mendidih)
+                    else if (x >= 160 && x < 352 && y >= 160 && y < 192) {
+                        validHit = true;
+                        overrideLambang = 'H<sub>2</sub>O<sub>(l)</sub>';
+                        overrideWujud = 'cair';
+                    }
+                }
+
+                // Logika Tampilan HUD saat Hitbox Ditekan
+                clearTimeout(circleTimeout);
+                if (validHit) {
+                    updateHUD(overrideLambang, overrideWujud);
+                } else {
+                    clearHUD();
+                }
+
+                // Hilangkan Circle dan kembalikan HUD setelah 3 Detik
+                circleTimeout = setTimeout(() => {
+                    circlePoint.style.display = 'none';
+                    if (simState !== 'OFF' && simState !== 'TRANSITION') {
+                        updateHUD(stateData[simState].lambang, stateData[simState].wujud);
+                    }
+                }, 3000);
             }
         }
-    }
-
-    // Fungsi Reset
-    function resetSimulation() {
-        currentTemp = 25;
-        powerOn = true;
-        powerBtn.classList.add('on');
-        updateDisplay();
-    }
-
-    // Event Listeners
-    document.getElementById('plus-btn').addEventListener('click', () => {
-        if (!powerOn) return; // Mesin mati
-        if (currentTemp < 100) {
-            currentTemp += 25; // Transisi suhu bertahap
-        } else {
-            handleEvaporation(); // Masuk logika penguapan
-        }
-        updateDisplay();
     });
 
-    document.getElementById('minus-btn').addEventListener('click', () => {
-        if (!powerOn) return; // Mesin mati
-        if (currentTemp > 0) {
-            currentTemp -= 25;
-        } else if (currentTemp <= 0 && currentTemp > -50) {
-            currentTemp -= 25; // Pendinginan es
-        }
-        updateDisplay();
-    });
-
-    document.getElementById('repeat-btn').addEventListener('click', resetSimulation);
-
-    // Klik Area Sampel
-    screenDisplay.addEventListener('click', () => {
-        alert(`Status: ${substanceName} pada ${currentTemp}°C.`);
-    });
-
-    // Inisialisasi Awal
-    updateDisplay();
 </script>
-
 </body>
 </html>
